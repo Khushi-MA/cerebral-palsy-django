@@ -1,0 +1,65 @@
+{% extends 'doctor/doctor_base.html' %}
+
+{% block title %}Other Patients{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h2 class="page-title">Other Patients</h2>
+</div>
+
+{% if other_patients %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Patient Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Gender</th>
+                    <th>Date of Birth</th>
+                    <th>Primary Doctor</th>
+                    <th>Hospital</th>
+                    <th>First Visit</th>
+                    <th>Illness</th>
+                    {% comment %} <th>Description</th> {% endcomment %}
+                    <th>Visits</th>
+                    <th>Additional Remarks</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for patient in other_patients %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ patient.user.name }}</td>
+                    <td>{{ patient.user.email }}</td>
+                    <td>{{ patient.user.phone_number|default:"N/A" }}</td>
+                    <td>{{ patient.user.gender|default:"N/A" }}</td>
+                    <td>{{ patient.user.date_of_birth|date:"d/m/Y"|default:"N/A" }}</td>
+                    <td>{{ patient.primary_doctor.user.name }}</td>
+                    <td>{{ patient.primary_doctor.hospital.user.name }}</td>
+                    <td>{{ patient.date_of_first_visit|date:"d/m/Y" }}</td>
+                    <td>{{ patient.illness_name }}</td>
+                    {% comment %} <td>{{ patient.illness_description|default:"N/A" }}</td> {% endcomment %}
+                    <td>{{ patient.number_of_visits }}</td>
+                    <td>{{ patient.additional_remarks|default:"N/A" }}</td>
+                    <td>
+                        <a href="{% url 'patient_dashboard' doctor.user.userID patient.user.userID %}" class="btn btn-info btn-sm">View</a>
+                        <form action="{% url 'doctor_request_edit_access' doctor.user.userID patient.user.userID %}" method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="reason" value="Requesting edit access">
+                            <button type="submit" class="btn btn-warning btn-sm">Request Edit</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        <p>No other patients found in the system.</p>
+    </div>
+{% endif %}
+{% endblock %}

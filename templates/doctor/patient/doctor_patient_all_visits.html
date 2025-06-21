@@ -1,0 +1,112 @@
+{% extends 'doctor/patient/patient_base.html' %}
+
+{% block title %}All visits{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="dashboard-header">
+    <h2 class="page-title">All visits History</h2>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if visits %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Doctor</th>
+                            <!-- <th>Status</th> -->
+                            <th>Remarks</th>
+                            <th>Report</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for visit in visits %}
+                        <tr>
+                            <td>{{ visit.visit_date|date:"d/m/Y" }}</td>
+                            <td>
+                                {% if visit.visit_time %}
+                                    {{ visit.visit_time|time:"h:i A" }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>Dr. {{ visit.doctor.user.name }}</td>
+                            <!-- <td>
+                                <select class="status-select status-{{ visit.status|lower }}" 
+                                        data-visit-id="{{ visit.visitID }}">
+                                    <option value="Pending" {% if visit.status == 'Pending' %}selected{% endif %}>
+                                        Pending
+                                    </option>
+                                    <option value="Completed" {% if visit.status == 'Completed' %}selected{% endif %}>
+                                        Completed
+                                    </option>
+                                    <option value="Rescheduled" {% if visit.status == 'Rescheduled' %}selected{% endif %}>
+                                        Rescheduled
+                                    </option>
+                                    <option value="Other" {% if visit.status == 'Other' %}selected{% endif %}>
+                                        Other
+                                    </option>
+                                </select>
+                            </td> -->
+                            <td>{{ visit.remarks|default:"No remarks" }}</td>
+                            <td>
+                                {% if visit.numpy_file_url %}
+                                    <a href="{{ visit.numpy_file_url }}" download>Download numpy File</a>
+                                    <a href="{% url 'doctor_patient_view_numpy_data' doctorID=doctor.user.userID patientID=patient.user.userID visitID=visit.visitID %}" class="btn btn-sm btn-info ms-2">View Data</a>
+                                {% else %}
+                                    No File Uploaded
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-center">No visits found</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.status-select').forEach(select => {
+    select.addEventListener('change', function() {
+        const visitId = this.dataset.visitId;
+        const newStatus = this.value;
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        fetch(`/users/update-visit-status/${visitId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: new URLSearchParams({
+                'status': newStatus
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                this.className = `status-select status-${newStatus.toLowerCase()}`;
+                // Reload the page to show updated status
+                window.location.reload();
+            } else {
+                alert('Failed to update status');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to update status');
+        });
+    });
+});
+</script>
+{% endblock %}

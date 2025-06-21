@@ -1,0 +1,86 @@
+python manage.py shell
+
+# Then paste this script:
+
+from users.models import CustomUser, Hospital, Doctor, Patient, Visit
+from django.contrib.auth.models import User
+
+def check_database():
+    print("\n=== CHECKING ALL DATABASE RECORDS ===\n")
+
+    # Check CustomUsers
+    print("=== CUSTOM USERS ===")
+    users = CustomUser.objects.all()
+    print(f"Total users: {users.count()}")
+    for user in users:
+        print(f"""
+        ID: {user.userID}
+        Name: {user.name}
+        Email: {user.email}
+        Phone: {user.phone_number}
+        Type: {user.user_type}
+        Registration Date: {user.date_of_registration}
+        Is Superuser: {user.is_superuser}
+        Is Active: {user.is_active}
+        """)
+
+    # Check Hospitals
+    print("\n=== HOSPITALS ===")
+    hospitals = Hospital.objects.all()
+    print(f"Total hospitals: {hospitals.count()}")
+    for hospital in hospitals:
+        print(f"""
+        ID: {hospital.user.userID}
+        Name: {hospital.user.name}
+        Address: {hospital.address}
+        Doctors Count: {hospital.number_of_doctors}
+        Patients Count: {hospital.number_of_patients}
+        Added by Admin: {hospital.added_by_admin.name}
+        """)
+
+    # Check Doctors
+    print("\n=== DOCTORS ===")
+    doctors = Doctor.objects.all()
+    print(f"Total doctors: {doctors.count()}")
+    for doctor in doctors:
+        print(f"""
+        ID: {doctor.user.userID}
+        Name: {doctor.user.name}
+        Hospital: {doctor.hospital.user.name}
+        Qualification: {doctor.highest_qualification}
+        Specialization: {doctor.specialization}
+        Experience: {doctor.experience} years
+        Patients Count: {doctor.number_of_patients}
+        """)
+
+    # Check Patients
+    print("\n=== PATIENTS ===")
+    patients = Patient.objects.all()
+    print(f"Total patients: {patients.count()}")
+    for patient in patients:
+        print(f"""
+        ID: {patient.user.userID}
+        Name: {patient.user.name}
+        Doctor: {patient.doctor.user.name}
+        Illness: {patient.illness_name}
+        First Visit: {patient.date_of_first_visit}
+        Visits Count: {patient.number_of_visits}
+        """)
+
+    # Check Visits
+    print("\n=== VISITS ===")
+    visits = Visit.objects.all()
+    print(f"Total visits: {visits.count()}")
+    for visit in visits:
+        print(f"""
+        ID: {visit.visitID}
+        Patient: {visit.patient.user.name}
+        Doctor: {visit.doctor.user.name}
+        Date: {visit.visit_date}
+        Status: {visit.status}
+        """)
+
+    print("\n=== DATABASE CHECK COMPLETE ===")
+
+# Run the check
+check_database()

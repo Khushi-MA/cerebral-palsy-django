@@ -1,0 +1,177 @@
+{% extends 'doctor/doctor_base.html' %}
+
+{% block title %}Secondary Doctor Management{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h2 class="page-title">Secondary Doctor Management</h2>
+</div>
+
+<h3>Requests by other doctors</h3>
+{% if edit_requests %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Requesting Doctor</th>
+                    <th>Patient</th>
+                    <th>Reason</th>
+                    <th>Request Date</th>
+                    <th>Response Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for request in edit_requests %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ request.requesting_doctor.user.name }}</td>
+                    <td>{{ request.patient.user.name }}</td>
+                    <td>{{ request.reason }}</td>
+                    <td>{{ request.request_date|date:"d/m/Y H:i" }}</td>
+                    <td>{{ request.response_date|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        <form action="{% url 'approve_edit_request' doctor.user.userID request.requestID %}" method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                        </form>
+                        <form action="{% url 'reject_edit_request' doctor.user.userID request.requestID %}" method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        <p>No pending edit requests.</p>
+    </div>
+{% endif %}
+
+<h3>Secondary Doctors to my patients</h3>
+{% if patients %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Patient Name</th>
+                    <th>Secondary Doctors</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for patient in patients %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ patient.user.name }}</td>
+                    <td>
+                        {% if patient.secondary_doctors.all %}
+                                {% for doctor in patient.secondary_doctors.all %}
+                                        {{ doctor.user.name }}
+                                        {% comment %} <form action="{% url 'remove_secondary_doctor' doctorID=doctorID patientID=patient.user.userID secondaryDoctorID=doctor.user.userID %}" method="post" style="display:inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                                        </form> {% endcomment %}
+                                    </br>
+                                {% endfor %}
+                        {% else %}
+                            <p>No secondary doctors assigned.</p>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if patient.secondary_doctors.all %}
+                            {% for doctor in patient.secondary_doctors.all %}
+                                <form action="{% url 'remove_secondary_doctor' doctorID=doctorID patientID=patient.user.userID secondaryDoctorID=doctor.user.userID %}" method="post" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-sm" style="margin-bottom: 10px;">Remove {{ doctor.user.name }}</button>
+                                </form>
+                            </br>
+                            {% endfor %}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        <p>No patients found.</p>
+    </div>
+{% endif %}
+
+<h3>Secondary Patients under me</h3>
+{% if secondary_patients %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Patient Name</th>
+                    <th>Primary Doctor</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for patient in secondary_patients %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ patient.user.name }}</td>
+                    <td>{{ patient.primary_doctor.user.name }}</td>
+                    <td>
+                        <a href="{% url 'patient_dashboard' doctorID=doctor.user.userID patientID=patient.user.userID %}" class="btn btn-info btn-sm">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        <p>No secondary patients found.</p>
+    </div>
+{% endif %}
+
+<h3>History of Own Requests</h3>
+{% if own_requests %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Patient</th>
+                    <th>Reason</th>
+                    <th>Request Date</th>
+                    <th>Status</th>
+                    <th>Response Date</th>
+                    <th>Response Note</th>
+                    <th>Retrieved access</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for request in own_requests %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ request.patient.user.name }}</td>
+                    <td>{{ request.reason }}</td>
+                    <td>{{ request.request_date|date:"d/m/Y H:i" }}</td>
+                    <td>{{ request.status }}</td>
+                    <td>{{ request.response_date|date:"d/m/Y H:i" }}</td>
+                    <td>{{ request.response_note|default:"N/A" }}</td>
+                    <td>{{ request.retrieved_access_date }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        <p>No requests found.</p>
+    </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,147 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<h2 class="page-title">Registered Hospitals</h2>
+
+<!-- Flash Messages -->
+{% if messages %}
+<div class="messages">
+    {% for message in messages %}
+    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Search Form -->
+<form method="GET" action="{% url 'admin_dashboard' %}" class="search-form">
+    <input type="text" name="search" placeholder="Search by Hospital Name" value="{{ search_query }}">
+    <button type="submit">Search</button>
+</form>
+
+{% if search_query %}
+    <!-- Display Search Results -->
+    <h3>Search Results for "{{ search_query }}"</h3>
+    {% if search_results %}
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Hospital Name</th>
+                    <th>Email</th>
+                    <th>Phone Number</th>
+                    <th>Address</th>
+                    <th>Registration Date</th>
+                    <th>Added By</th>
+                    <th>Doctors</th>
+                    <th>Patients</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for hospital in search_results %}
+                <tr>
+                    <td>{{ forloop.counter0|add:search_results.start_index }}</td>
+                    <td>{{ hospital.user.name }}</td>
+                    <td>{{ hospital.user.email }}</td>
+                    <td>{{ hospital.user.phone_number }}</td>
+                    <td>{{ hospital.address }}</td>
+                    <td>{{ hospital.user.date_of_registration }}</td>
+                    <td>{{ hospital.added_by_admin.name }}</td>
+                    <td>{{ hospital.number_of_doctors }}</td>
+                    <td>{{ hospital.number_of_patients }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Pagination for Search Results -->
+        <div class="pagination">
+            <span class="pagination-step-links">
+                {% if search_results.has_previous %}
+                    <a href="?search={{ search_query }}&page=1">&laquo; First</a>
+                    <a href="?search={{ search_query }}&page={{ search_results.previous_page_number }}">Previous</a>
+                {% endif %}
+
+                <span class="pagination-current">
+                    Page {{ search_results.number }} of {{ search_results.paginator.num_pages }}
+                </span>
+
+                {% if search_results.has_next %}
+                    <a href="?search={{ search_query }}&page={{ search_results.next_page_number }}">Next</a>
+                    <a href="?search={{ search_query }}&page={{ search_results.paginator.num_pages }}">Last &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
+    {% else %}
+        <p>No hospitals found matching "{{ search_query }}".</p>
+    {% endif %}
+
+    <!-- Back to full list button -->
+    <p><a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">Show All Hospitals</a></p>
+
+{% else %}
+    <!-- Show main hospital list only if no search query -->
+    {% if hospitals %}
+    <h3>All Registered Hospitals</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Hospital Name</th>
+                <th>Email</th>
+                <th>Phone Number</th>
+                <th>Address</th>
+                <th>Registration Date</th>
+                <th>Added By</th>
+                <th>Doctors</th>
+                <th>Patients</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for hospital in hospitals %}
+            <tr>
+                <td>{{ forloop.counter0|add:hospitals.start_index }}</td>
+                <td>{{ hospital.user.name }}</td>
+                <td>{{ hospital.user.email }}</td>
+                <td>{{ hospital.user.phone_number }}</td>
+                <td>{{ hospital.address }}</td>
+                <td>{{ hospital.user.date_of_registration }}</td>
+                <td>{{ hospital.added_by_admin.name }}</td>
+                {% comment %} <td>{{ hospital.number_of_doctors }}</td> {% endcomment %}
+                <td>{{ hospital.hospital_doctors.count }}</td>
+                <td>{{ hospital.number_of_patients }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Pagination for Main Hospital List -->
+    <div class="pagination">
+        <span class="pagination-step-links">
+            {% if hospitals.has_previous %}
+                <a href="?page=1">&laquo; First</a>
+                <a href="?page={{ hospitals.previous_page_number }}">Previous</a>
+            {% endif %}
+
+            <span class="pagination-current">
+                Page {{ hospitals.number }} of {{ hospitals.paginator.num_pages }}
+            </span>
+
+            {% if hospitals.has_next %}
+                <a href="?page={{ hospitals.next_page_number }}">Next</a>
+                <a href="?page={{ hospitals.paginator.num_pages }}">Last &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+
+    {% else %}
+    <div class="alert alert-info">
+        <p>No hospitals registered yet. <a href="{% url 'admin_register_hospital' %}" class="register-btn register-btn-primary">Add New Hospital</a></p>
+    </div>
+    {% endif %}
+{% endif %}
+
+{% endblock %}

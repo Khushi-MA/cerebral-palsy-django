@@ -1,0 +1,28 @@
+
+# In shell:
+from users.models import CustomUser, Hospital
+
+# Find all hospital-type users
+hospital_users = CustomUser.objects.filter(user_type='HOSPITAL')
+
+# Find orphaned hospital users (those without a Hospital record)
+orphaned_users = []
+for user in hospital_users:
+    try:
+        # Try to get the associated hospital
+        hospital = Hospital.objects.get(user=user)
+    except Hospital.DoesNotExist:
+        # If no hospital exists, this is an orphaned user
+        orphaned_users.append(user)
+        print(f"Orphaned hospital user found: ID={user.userID}, Name={user.name}, Email={user.email}")
+
+# Print total count
+print(f"\nTotal orphaned hospital users: {len(orphaned_users)}")
+
+# Clean up orphaned users if needed
+if orphaned_users:
+    print("\nCleaning up orphaned users...")
+    for user in orphaned_users:
+        print(f"Deleting user: {user.name}")
+        user.delete()
+    print("Cleanup complete")

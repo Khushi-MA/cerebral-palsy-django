@@ -1,0 +1,268 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Demographics</title>
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+            rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script
+            src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+        <style>
+        .demo1-container {
+            margin-top: 20px;
+        }
+        .demo1-section {
+            margin-bottom: 20px;
+        }
+        .demo1-title {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+        .demo1-list {
+            list-style: none;
+            padding: 0;
+        }
+        .demo1-list-item {
+            margin-bottom: 5px;
+        }
+        .demo1-link {
+            text-decoration: none;
+        }
+        .demo1-link:hover {
+            text-decoration: none;
+        }
+        .demo1-answer {
+            font-style: italic;
+            color: #6c757d;
+        }
+        .demo1-chart-container {
+            width: 80%;
+        }
+    </style>
+    </head>
+    <body>
+        <div class="container demo1-container">
+            <h1>Demographics</h1>
+            <div class="row">
+                <div class="col-md-4 demo1-section">
+                    <h2 class="demo1-title">Hospitals</h2>
+                    {% if hospitals %}
+                    <ul class="demo1-list">
+                        {% for hospital in hospitals %}
+                        <li
+                            class="demo1-list-item {% if selected_hospital and hospital.user.userID == selected_hospital.user.userID %}fw-bold{% endif %}">
+                            <a class="demo1-link"
+                                href="?hospital_id={{ hospital.user.userID }}">
+                                {{ hospital.user.name }}
+                                ({% if hospital.hospital_doctors.count > 0 %}{{
+                                hospital.hospital_doctors.count }}{% else %}0{%
+                                endif %} doctors)
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="demo1-answer">None</p>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 demo1-section">
+                    {% if selected_hospital %}
+                    <h2 class="demo1-title">Doctors at {{
+                        selected_hospital.user.name }}</h2>
+                    {% if doctors %}
+                    <ul class="demo1-list">
+                        {% for doctor in doctors %}
+                        <li
+                            class="demo1-list-item {% if selected_doctor and doctor.user.userID == selected_doctor.user.userID %}fw-bold{% endif %}">
+                            <a class="demo1-link"
+                                href="?hospital_id={{ selected_hospital.user.userID }}&doctor_id={{ doctor.user.userID }}">
+                                {{ doctor.user.name }}
+                                ({% with
+                                total_patients=doctor.primary_count|add:doctor.secondary_count
+                                %}{{ total_patients }}{% endwith %} patients)
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="demo1-answer">None</p>
+                    {% endif %}
+                    {% endif %}
+                </div>
+                <div class="col-md-4 demo1-section">
+                    {% if selected_doctor %}
+                    <h2 class="demo1-title">Patients of Dr. {{
+                        selected_doctor.user.name }}</h2>
+                    <h3 class="demo1-title">Primary Patients</h3>
+                    {% if primary_patients %}
+                    <ul class="demo1-list">
+                        {% for patient in primary_patients %}
+                        <li class="demo1-list-item">{{ patient.user.name }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="demo1-answer">None</p>
+                    {% endif %}
+                    <h3 class="demo1-title">Secondary Patients</h3>
+                    {% if secondary_patients %}
+                    <ul class="demo1-list">
+                        {% for patient in secondary_patients %}
+                        <li class="demo1-list-item">{{ patient.user.name }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="demo1-answer">None</p>
+                    {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="row" style="margin-bottom: 30px;">
+                <div class="col-md-6" id="doctorChartContainer" {% if
+                    selected_doctor %}style="opacity: 0.5;" {% endif %}>
+                    <h2>Doctor Gender Distribution</h2>
+                    <label for="chartType">Chart Type:</label>
+                    <select id="chartType" {% if selected_doctor %}disabled{%
+                        endif %}>
+                        <option value="pie">Pie Chart</option>
+                        <option value="bar">Bar Chart</option>
+                    </select>
+                    <div class="demo1-chart-container">
+                        <canvas id="genderChart"></canvas>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    {% if selected_doctor %}
+                    <h2>Patient Gender Distribution - Dr. {{
+                        selected_doctor.user.name }}</h2>
+                    <a
+                        href="?hospital_id={{ selected_hospital.user.userID }}&doctor_id={{ selected_doctor.user.userID }}&show_secondary={% if show_secondary %}false{% else %}true{% endif %}"
+                        class="btn btn-sm btn-outline-primary">
+                        {% if show_secondary %}
+                        Hide Secondary Patients
+                        {% else %}
+                        Show Secondary Patients
+                        {% endif %}
+                    </a>
+                    {% else %}
+                    <h2>Patient Gender Distribution</h2>
+                    {% endif %}
+                    <label for="patientChartType">Chart Type:</label>
+                    <select id="patientChartType">
+                        <option value="pie">Pie Chart</option>
+                        <option value="bar">Bar Chart</option>
+                    </select>
+                    <div class="demo1-chart-container">
+                        <canvas id="patientGenderChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script
+            src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+        // Register the datalabels plugin
+        Chart.register(ChartDataLabels);
+
+        const genderData = JSON.parse('{{ gender_distribution_json|safe }}');
+        const chartTypeSelect = document.getElementById('chartType');
+        const patientChartTypeSelect = document.getElementById('patientChartType');
+        const ctx = document.getElementById('genderChart').getContext('2d');
+        const patientCtx = document.getElementById('patientGenderChart').getContext('2d');
+        let myChart;
+        let myPatientChart;
+
+        function getParameterByName(name, url = window.location.href) {
+            name = name.replace(/[\[\]]/g, '\\$&');
+            var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+
+        let showSecondary = getParameterByName('show_secondary') === 'true';
+        let patientGenderData = {};
+
+        function createChart(type, chartCtx, chartData, chartVar) {
+            if (chartVar) {
+                chartVar.destroy();
+            }
+
+            const labels = Object.keys(chartData);
+            const data = Object.values(chartData);
+
+            chartVar = new Chart(chartCtx, {
+                type: type,
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Number of People',
+                        data: data,
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(54, 162, 235, 0.2)',
+                            'rgba(255, 206, 86, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: Math.round,
+                            font: {
+                                weight: 'bold',
+                                size: 12 // Reduced font size
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    },
+                    layout: {
+                        padding: {
+                            top: 5, // Reduced padding
+                            bottom: 5 // Reduced padding
+                        }
+                    }
+                }
+            });
+            return chartVar;
+        }
+
+        function updatePatientChart() {
+            patientGenderData = JSON.parse('{{ patient_gender_distribution_json|safe }}');
+            myPatientChart = createChart('pie', patientCtx, patientGenderData, myPatientChart);
+        }
+
+        myChart = createChart('pie', ctx, genderData, myChart);
+        updatePatientChart();
+
+        chartTypeSelect.addEventListener('change', function() {
+            myChart = createChart(this.value, ctx, genderData, myChart);
+        });
+
+        patientChartTypeSelect.addEventListener('change', function() {
+            myPatientChart = createChart(this.value, patientCtx, patientGenderData, myPatientChart);
+        });
+    </script>
+    </body>
+</html>

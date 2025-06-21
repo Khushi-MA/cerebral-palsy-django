@@ -1,0 +1,25 @@
+{% extends 'doctor/patient/patient_base.html' %}
+
+{% block title %}numpy Data{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h2 class="page-title">numpy File Data for Visit #{{ visit.visitID }}</h2>
+</div>
+<div class="card">
+    <div class="card-body">
+        {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+        {% elif numbers %}
+            <div class="mb-3">
+                <h5>Data in numpy file:</h5>
+                <pre style="white-space: pre-wrap; word-break: break-all;">{{ numbers }}</pre>
+            </div>
+        {% else %}
+            <p>No numbers found in the numpy file.</p>
+            <p>{{ visit.file_path }}</p>
+        {% endif %}
+        <a href="{% url 'doctor_patient_all_visits' doctorID=visit.doctor.user.userID patientID=visit.patient.user.userID %}" class="btn btn-secondary mt-3">Back to All Visits</a>
+    </div>
+</div>
+{% endblock %}

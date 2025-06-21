@@ -1,0 +1,82 @@
+{% extends 'doctor/doctor_base.html' %}
+
+{% block title %}Doctor Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h2 class="page-title">My Patients</h2>
+    <div class="dashboard-actions">
+        <a href="{% url 'doctor_register_patient' doctorID=doctor.user.userID %}" class="btn btn-primary">
+            <i class="bi bi-person-plus"></i> Add New Patient
+        </a>
+    </div>
+</div>
+
+{% if patients %}
+    <table >
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Patient Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Age</th>
+                <th>First Visit</th>
+                <th>Illness</th>
+                <th>Last Visit</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for patient in patients %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ patient.user.name }}</td>
+                <td>{{ patient.user.email }}</td>
+                <td>{{ patient.user.phone_number|default:"N/A" }}</td>
+                <td>{{ patient.user.date_of_birth|timesince|default:"N/A" }}</td>
+                <td>{{ patient.date_of_first_visit|date:"d/m/Y" }}</td>
+                <td>{{ patient.illness_name }}</td>
+                <td>
+                    {% with last_visit=patient.patient_visits.first %}
+                        {% if last_visit %}
+                            {{ last_visit.visit_date|date:"d/m/Y" }}
+                            ({{ last_visit.status }})
+                        {% else %}
+                            No visits
+                        {% endif %}
+                    {% endwith %}
+                </td>
+                <td>
+                    <div class="btn-group">
+                        <span>
+                            <a href="{% url 'patient_dashboard' doctorID=doctor.user.userID patientID=patient.user.userID %}" 
+                            class="btn btn-primary btn-sm">
+                            <i class="bi bi-eye"></i> View
+                         </a>                         
+                         <a href="{% url 'doctor_patient_make_visit' doctorID=doctor.user.userID patientID=patient.user.userID %}" 
+                            class="btn btn-success btn-sm">
+                             <i class="bi bi-calendar-plus">appoint</i> 
+                         </a>
+                        </span>
+
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">
+    <p>No patients registered yet.</p>
+</div>
+{% endif %}
+
+<!-- Notification Badge for Sidebar -->
+{% block sidebar_notifications %}
+    {% if pending_requests_count %}
+    <span class="notification-badge">{{ pending_requests_count }}</span>
+    {% endif %}
+{% endblock %}
+{% endblock %}

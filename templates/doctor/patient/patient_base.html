@@ -1,0 +1,147 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Patient Panel{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+    <link rel="stylesheet" href="{% static 'css/navbar.css' %}" />
+    {% block extra_css %}{% endblock %}
+  </head>
+  <body>
+    <div class="fixed-header">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <div>
+          <h3 class="fixed-header-title">Patient Panel</h3>
+          <small>{{ patient.user.name }}</small>
+        </div>
+        <button class="nav-toggle-btn" id="toggleBtn">
+          <i class="bi bi-list"></i>
+        </button>
+      </div>
+
+      <div class="profile-dropdown">
+        {% if patient.user.profile_photo %}
+            <img src="{{ patient.user.profile_photo.url }}" class="profile-photo" id="profilePhoto">
+        {% else %}
+            <img src="{% static 'assets/images/default.png' %}" class="profile-photo" id="profilePhoto">
+        {% endif %}
+        <div class="profile-dropdown-content">
+            <a href="#" data-bs-toggle="modal" data-bs-target="#editProfileModal">Edit Profile</a>
+            <a href="{% url 'common_login' %}">Log Out</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-sidebar" id="sidebar">
+      <div class="nav-header"></div>
+      <div class="nav-content">
+        <div class="nav-links">
+          <a href="{% url 'patient_dashboard' doctorID=patient.primary_doctor.user.userID patientID=patient.user.userID %}" 
+             class="nav-link {% if request.resolver_match.url_name == 'patient_dashboard' %}active{% endif %}">
+            <i class="bi bi-house nav-icon"></i>
+            <span>Dashboard</span>
+          </a>
+          <a href="{% url 'doctor_patient_all_visits' doctorID=doctor.user.userID patientID=patient.user.userID %}"
+             class="nav-link {% if request.resolver_match.url_name == 'doctor_patient_all_visits' %}active{% endif %}">
+            <i class="bi bi-calendar3 nav-icon"></i>
+            <span>All Visits</span>
+          </a>
+          <a href="{% url 'doctor_patient_make_visit' doctorID=doctor.user.userID patientID=patient.user.userID %}" class="nav-link">
+            <i class="bi bi-check nav-icon"></i>
+            <span>Add visit</span>
+          </a>
+          <a href="{% url 'doctor_dashboard' doctorID=request.user.userID %}" class="nav-link {% if request.resolver_match.url_name == 'doctor_dashboard' %}active{% endif %}">
+            <i class="bi bi-people nav-icon"></i>
+            <span>Doctor dashboard</span>
+          </a>
+          <a href="{% url 'common_login' %}" class="nav-link">
+            <i class="bi bi-box-arrow-right nav-icon"></i>
+            <span>Logout</span>
+          </a>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="container">{% block content %}{% endblock %}</div>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editProfileModalLabel">Edit Profile</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form method="post" action="{% url 'patient_edit_profile' patientID=patient.user.userID %}" enctype="multipart/form-data">
+              {% csrf_token %}
+              <div class="row">
+                  <div class="col-md-6 register-mb-3">
+                      <label class="register-form-label">Patient Name:</label>
+                      <input type="text" name="name" class="register-form-control" value="{{ patient.user.name }}" required>
+                  </div>
+                  <div class="col-md-6 register-mb-3">
+                      <label class="register-form-label">Email:</label>
+                      <input type="email" name="email" class="register-form-control" value="{{ patient.user.email }}" required>
+                  </div>
+              </div>
+              <div class="row">
+                  <div class="col-md-6 register-mb-3">
+                      <label class="register-form-label">Phone Number:</label>
+                      <input type="tel" name="phone_number" class="register-form-control" value="{{ patient.user.phone_number }}" required>
+                  </div>
+                  <div class="col-md-6 register-mb-3">
+                      <label class="register-form-label">Illness Name:</label>
+                      <input type="text" name="illness_name" class="register-form-control" value="{{ patient.illness_name }}" required>
+                  </div>
+              </div>
+              <div class="row">
+                  <div class="col-md-12 register-mb-3">
+                      <label class="register-form-label">Illness Description:</label>
+                      <textarea class="register-form-control" name="illness_description" rows="3">{{ patient.illness_description }}</textarea>
+                  </div>
+              </div>
+              <div class="row">
+                  <div class="col-md-6 register-mb-3">
+                      <label class="register-form-label">Profile Photo:</label>
+                      <input type="file" class="register-form-control" name="profile_photo" accept="image/*">
+                  </div>
+
+                  <div class="col-md-6 register-mb-3">
+                      <label class="register-form-label">Password (leave blank to keep current):</label>
+                      <input type="password" name="password" class="register-form-control" id="passwordField">
+                      <div class="password-toggle">
+                          <input type="checkbox" id="showPassword" onclick="togglePassword()"> Show Password
+                      </div>
+                  </div>
+              </div>
+              <div class="register-d-flex register-gap-2">
+                  <button type="submit" class="register-btn register-btn-primary">Save changes</button>
+                  <a href="#" class="register-btn register-btn-secondary" data-bs-dismiss="modal">Cancel</a>
+              </div>
+          </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      document.getElementById("toggleBtn").addEventListener("click", function () {
+        document.getElementById("sidebar").classList.toggle("collapsed");
+        document.querySelector(".container").classList.toggle("expanded");
+      });
+
+      document.getElementById("togglePassword").addEventListener("click", function () {
+        const passwordField = document.getElementById("passwordField");
+        const type = passwordField.getAttribute("type") === "password" ? "text" : "password";
+        passwordField.setAttribute("type", type);
+        this.classList.toggle("bi-eye");
+      });
+    </script>
+  </body>
+</html>

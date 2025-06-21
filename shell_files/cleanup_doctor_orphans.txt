@@ -1,0 +1,31 @@
+# In shell:
+from users.models import CustomUser, Doctor
+
+# Find all doctor-type users
+doctor_users = CustomUser.objects.filter(user_type='DOCTOR')
+
+# Find orphaned doctor users (those without a Doctor record)
+orphaned_users = []
+for user in doctor_users:
+    try:
+        # Try to get the associated doctor
+        doctor = Doctor.objects.get(user=user)
+    except Doctor.DoesNotExist:
+        # If no doctor exists, this is an orphaned user
+        orphaned_users.append(user)
+        print(f"Orphaned doctor user found: ID={user.userID}, Name={user.name}, Email={user.email}")
+
+# Print total count
+print(f"\nTotal orphaned doctor users: {len(orphaned_users)}")
+
+# Clean up orphaned users if needed
+if orphaned_users:
+    confirm = input("\nDo you want to delete these orphaned users? (yes/no): ")
+    if confirm.lower() == 'yes':
+        print("\nCleaning up orphaned users...")
+        for user in orphaned_users:
+            print(f"Deleting user: {user.name}")
+            user.delete()
+        print("Cleanup complete")
+    else:
+        print("Cleanup cancelled")

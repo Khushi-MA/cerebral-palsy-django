@@ -1,0 +1,118 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}Register Hospital{% endblock %}
+
+{% block content %}
+<h2 class="page-title">Add New Hospital</h2>
+
+<div class="page-card">
+    <div class="page-card-body">
+        {% if messages %}
+        <div class="messages mb-4">
+            {% for message in messages %}
+            <div
+                class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-6 register-mb-3">
+                    <label class="register-form-label">Hospital Name:</label>
+                    <input type="text" name="name" class="register-form-control"
+                        required>
+                </div>
+                <div class="col-md-6 register-mb-3">
+                    <label class="register-form-label">Email:</label>
+                    <input type="email" name="email"
+                        class="register-form-control" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 register-mb-3 position-relative">
+                    <label class="register-form-label">Password:</label>
+                    <input type="password"
+                        name="password"
+                        class="register-form-control"
+                        id="passwordField"
+                        required
+                        minlength="8"
+                        pattern="^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
+                        oninput="validatePassword()">
+                    <div class="password-toggle">
+                        <input type="checkbox" id="showPassword"
+                            onclick="togglePassword()"> Show Password
+                    </div>
+                    <ul id="password-rules"
+                        style="color: red; list-style-type: none; padding-left: 0; margin-top: 10px; font-size: 0.9em;">
+                        <li id="length">❌ At least 8 characters</li>
+                        <li id="uppercase">❌ At least one uppercase letter
+                            (A-Z)</li>
+                        <li id="lowercase">❌ At least one lowercase letter
+                            (a-z)</li>
+                        <li id="number">❌ At least one number (0-9)</li>
+                        <li id="special">❌ At least one special character
+                            (@$!%*?&)</li>
+                    </ul>
+                </div>
+                <div class="col-md-6 register-mb-3">
+                    <label class="register-form-label">Confirm Password:</label>
+                    <input type="password" name="confirm_password"
+                        class="register-form-control" required>
+                </div>
+            </div>
+            <div class="row">
+
+                <div class="col-md-6 register-mb-3">
+                    <label class="register-form-label">Address:</label>
+                    <textarea name="address" class="register-form-control"
+                        rows="3" required></textarea>
+                </div>
+                <div class="col-md-6 register-mb-3">
+                    <label class="register-form-label">Phone Number:</label>
+                    <input type="tel" name="phone_number"
+                        class="register-form-control" pattern="[0-9]{10}"
+                        title="Please enter a valid 10-digit phone number">
+                </div>
+            </div>
+            <div class="row">
+                <div class="register-d-flex register-gap-2 justify-content-center">
+                    <button type="submit" class="register-btn register-btn-primary">Register Hospital</button>
+                    <a href="{% url 'admin_dashboard' %}" class="register-btn register-btn-secondary">Back to Dashboard</a>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<script>
+function validatePassword() {
+    let password = document.getElementById("passwordField").value;
+
+    document.getElementById("length").style.color = password.length >= 8 ? "green" : "red";
+    document.getElementById("length").innerHTML = password.length >= 8 ? "✔ At least 8 characters" : "❌ At least 8 characters";
+
+    document.getElementById("uppercase").style.color = /[A-Z]/.test(password) ? "green" : "red";
+    document.getElementById("uppercase").innerHTML = /[A-Z]/.test(password) ? "✔ At least one uppercase letter" : "❌ At least one uppercase letter";
+
+    document.getElementById("lowercase").style.color = /[a-z]/.test(password) ? "green" : "red";
+    document.getElementById("lowercase").innerHTML = /[a-z]/.test(password) ? "✔ At least one lowercase letter" : "❌ At least one lowercase letter";
+
+    document.getElementById("number").style.color = /[0-9]/.test(password) ? "green" : "red";
+    document.getElementById("number").innerHTML = /[0-9]/.test(password) ? "✔ At least one number" : "❌ At least one number";
+
+    document.getElementById("special").style.color = /[@$!%*?&]/.test(password) ? "green" : "red";
+    document.getElementById("special").innerHTML = /[@$!%*?&]/.test(password) ? "✔ At least one special character" : "❌ At least one special character";
+}
+
+function togglePassword() {
+    let passwordInput = document.getElementById("passwordField");
+    passwordInput.type = passwordInput.type === "password" ? "text" : "password";
+}
+</script>
+{% endblock %}

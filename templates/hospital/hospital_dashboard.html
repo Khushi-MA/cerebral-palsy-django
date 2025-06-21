@@ -1,0 +1,50 @@
+{% extends 'hospital/hospital_base.html' %}
+
+{% block title %}Hospital Dashboard{% endblock %}
+
+{% block extra_css %}{% endblock %}
+
+{% block content %}
+<h2 class="page-title">Registered Doctors</h2>
+
+{% if doctors %}
+<table>
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Doctor Name</th>
+            <th>Email</th>
+            <th>Phone Number</th>
+            <th>Specialization</th>
+            <th>Highest Qualification</th>
+            <th>Experience</th>
+            <th>Joining Date</th>
+            <th>Patients Count</th>
+            <th>Gender</th>
+            <th>Age</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for doctor in doctors %}
+        <tr>
+            <th scope="row">{{ forloop.counter }}</th>
+            <td>{{ doctor.user.name }}</td>
+            <td>{{ doctor.user.email }}</td>
+            <td>{{ doctor.user.phone_number }}</td>
+            <td>{{ doctor.specialization }}</td>
+            <td>{{ doctor.highest_qualification }}</td>
+            <td>{{ doctor.experience }} years</td>
+            <td>{{ doctor.user.date_of_registration }}</td>
+            <td>{{ doctor.doctor_patients.count }}</td>
+            <td>{{ doctor.user.gender }}</td>
+            <td>{{ doctor.user.age }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="alert alert-info">
+    <p>No doctors registered yet. Click "Add New Doctor" to register one.</p>
+</div>
+{% endif %}
+{% endblock %}
